@@ -1,0 +1,27 @@
+description: "Pipeline for parsing TYPO3 logs"
+
+processors:
+  - set:
+      field: event.ingested
+      value: '{{_ingest.timestamp}}'
+  - grok:
+      field: message
+      patterns:
+        - '%{DATESTAMP_RFC2822:typo3.time} \[%{LOGLEVEL:typo3.loglevel}\] request="%{DATA:typo3.requestid}" component="%{DATA:typo3.component}": %{DATA:typo3.message}?( - %{GREEDYDATA:typo3.trace})?$'
+      ignore_missing: true
+  - rename:
+      field: '@timestamp'
+      target_field: event.created
+  - date:
+      field: typo3.time
+      target_field: '@timestamp'
+      formats:
+        - EEE, dd MMM yyyy HH:mm:ss Z
+      on_failure:
+        - append:
+            field: error.message
+            value: '{{ _ingest.on_failure_message }}'
+on_failure:
+  - set:
+      field: error.message
+      value: '{{ _ingest.on_failure_message }}'

@@ -1,0 +1,10 @@
+type: log
+paths:
+{{ range $i, $path := .paths }}
+  - {{$path}}
+{{ end }}
+processors:
+  - add_fields:
+      target: ''
+      fields:
+        ecs.version: 1.6.0
